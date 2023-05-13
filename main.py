@@ -3,6 +3,12 @@ import base64
 import sqlite3
 import telegram
 from time import  sleep
+from telegram.constants import ParseMode
+import asyncio
+
+import tracemalloc
+tracemalloc.start()
+
 def base64_to_string(inp:str):
     return base64.b64decode(inp).decode('UTF-8')
 
@@ -40,13 +46,18 @@ def check_exist_in_db(server):
 
 
 def send_to_telegram(server_link:str):
-    bot = telegram.Bot(token='YOUR_BOT_TOKEN')
-    chat_id = '@YOUR_CHANNEL_ID'
-    html_message = f'🟩 New V2ray Server:\n\nClick to Copy\n🔹 <code>{server_link}</code>'
-    bot.send_message(chat_id=chat_id, text=html_message, parse_mode=telegram.ParseMode.HTML)
-    print(server_link)
-
-
+    bot_token = '5260808018:AAEcUiHOnA3z2A2PeVp-9KrDFaTNaQ5hTWU'
+    chat_id = '-1001643529458'
+    html_message = f'🌟New V2ray Server!:\n\nType: {server_link.split("://")[0]}\n\n<b>Cick To Copy</b>\n\n<code>{server_link}</code>\n\n🛡 Anti-Censorship Project By @Secuner'
+    post_url = f'https://api.telegram.org/bot{bot_token}/sendMessage'
+    payload = {
+        "chat_id": chat_id,
+        "text": html_message,
+        "parse_mode": "HTML"
+    }
+    response = requests.post(post_url, data=payload)
+    print(response.text)
+    # print(server_link)
 
 conn = sqlite3.connect('v2ray.db')
 url = 'https://raw.githubusercontent.com/tbbatbb/Proxy/master/dist/v2ray.config.txt'
