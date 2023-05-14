@@ -3,6 +3,9 @@ import base64
 import sqlite3
 from time import sleep
 import tracemalloc
+from subprocess import Popen, PIPE
+from wget import download
+from os.path import exists
 
 tracemalloc.start()
 
@@ -73,15 +76,36 @@ def find_config(url: str, decode: bool = False):
         v2ray_results = server_list_generator(servers)
 
         for link in v2ray_results:
-            if check_exist_in_db(link) is True:
-                continue
-            elif check_exist_in_db(link) is False:
+            if check_exist_in_db(link) is False:
                 insert_to_db(link)
                 send_to_telegram(link)
+                speed_test(link)
                 sleep(5)
 
         conn.commit()
         conn.close()
+
+
+def check_vmess_cli():
+    if exists("vmessspeed_amd64_linux") is False:
+        download("https://github.com/v2fly/vmessping/releases/download/v0.3.4/vmessspeed_amd64_linux.zip")
+
+        import zipfile
+
+        with zipfile.ZipFile("vmessspeed_amd64_linux.zip") as file:
+            file.extractall()
+
+        from os import system
+
+        system("chmod +x vmessspeed_amd64_linux")
+
+
+def speed_test(server: str):
+    check_vmess_cli()
+
+    process = Popen(["./vmessspeed_amd64_linux", server], stdout=PIPE)
+    result = process.communicate()[0]
+    pass
 
 
 def main():
