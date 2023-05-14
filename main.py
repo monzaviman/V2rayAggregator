@@ -55,27 +55,33 @@ def send_to_telegram(server_link: str):
     # print(server_link)
 
 
-def find_config(url, decode: bool = False):
+def find_config(url: str, decode: bool = False):
+    global conn
+
     conn = sqlite3.connect('v2ray.db')
-    response = requests.get(url).text
 
-    if decode:
-        servers = base64_to_string(response)
-    else:
-        servers = response
+    response = requests.get(url)
 
-    v2ray_results = server_list_generator(servers)
+    if response.status_code == 200:
+        response = response.text
 
-    for link in v2ray_results:
-        if check_exist_in_db(link) is True:
-            continue
-        elif check_exist_in_db(link) is False:
-            insert_to_db(link)
-            send_to_telegram(link)
-            sleep(5)
+        if decode:
+            servers = base64_to_string(response)
+        else:
+            servers = response
 
-    conn.commit()
-    conn.close()
+        v2ray_results = server_list_generator(servers)
+
+        for link in v2ray_results:
+            if check_exist_in_db(link) is True:
+                continue
+            elif check_exist_in_db(link) is False:
+                insert_to_db(link)
+                send_to_telegram(link)
+                sleep(5)
+
+        conn.commit()
+        conn.close()
 
 
 def main():
